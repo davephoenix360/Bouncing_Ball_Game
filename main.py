@@ -42,8 +42,20 @@ class Ball(object):
         
         self.rollCount %= len(self.picload)
         win.blit(self.picload[self.rollCount], (self.x, self.y))
+        
+class safeGround(object):
+    def __init__(self, x, y, width, height, color):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        
+    def draw(self, win):
+        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
+        
 
-class Obstacles(object):
+""" class Obstacles(object):
     def __init__(self, x, y, vel, width, height):
         self.x = x
         self.y = y
@@ -51,20 +63,41 @@ class Obstacles(object):
         self.width = width
         self.height = height
         
-    
+    def draw(self):
+        
+        pass """
 
 
-def redraw_game_window(ball):
+def redraw_game_window(ball, safeGrounds):
     win.blit(bg, (0, 0))
     ball.draw(win)
+    
+    for safeG in safeGrounds:
+        safeG.draw(win)
+    
     pygame.display.update()
     
-ball = Ball(100, 370, 65)
+def makeSafeGround(safeGrounds, HOLE_WIDTH, GROUND_HEIGHT, screenwidth):
+    totalWidthCovered = 0
+    for safeG in safeGrounds:
+        totalWidthCovered += safeG.width
+
+    while totalWidthCovered != screenwidth:
+        safeGrounds += [safeGround(len(safeGrounds)*50, 425, HOLE_WIDTH, GROUND_HEIGHT, (200, 200, 0))]
+        totalWidthCovered += HOLE_WIDTH
+    
+    return safeGrounds
+
+HOLE_WIDTH = 50
+GROUND_HEIGHT = 10
+ball = Ball(100, 360, 65)
+safeGrounds = []
 
 run = True
 while run:
     
     clock.tick(len(ball.picload))
+    safeGrounds = makeSafeGround(safeGrounds, HOLE_WIDTH, GROUND_HEIGHT, screenwidth)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -110,6 +143,6 @@ while run:
         ball.isMovingLeft = False
         
 
-    redraw_game_window(ball)
+    redraw_game_window(ball, safeGrounds)
 
 pygame.quit()
