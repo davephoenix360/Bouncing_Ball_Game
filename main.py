@@ -51,6 +51,7 @@ class Obstacles(object):
         self.width = width
         self.height = height
         
+    
 
 
 def redraw_game_window(ball):
