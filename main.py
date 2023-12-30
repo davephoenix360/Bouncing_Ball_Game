@@ -50,9 +50,11 @@ class safeGround(object):
         self.width = width
         self.height = height
         self.color = color
+        self.visible = True
         
     def draw(self, win):
-        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
+        if self.visible:
+            pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
         
 
 """ class Obstacles(object):
@@ -83,21 +85,39 @@ def makeSafeGround(safeGrounds, HOLE_WIDTH, GROUND_HEIGHT, screenwidth):
         totalWidthCovered += safeG.width
 
     while totalWidthCovered != screenwidth:
-        safeGrounds += [safeGround(len(safeGrounds)*50, 425, HOLE_WIDTH, GROUND_HEIGHT, (200, 200, 0))]
+        safeGrounds += [safeGround(len(safeGrounds)*HOLE_WIDTH, 425, HOLE_WIDTH, GROUND_HEIGHT, (200, 200, 0))]
         totalWidthCovered += HOLE_WIDTH
     
     return safeGrounds
 
-HOLE_WIDTH = 50
+HOLE_WIDTH = 80
 GROUND_HEIGHT = 10
 ball = Ball(100, 360, 65)
 safeGrounds = []
+holes = [True]*int(screenwidth/HOLE_WIDTH)
+holeControl = -1
+level = 0
 
 run = True
 while run:
     
     clock.tick(len(ball.picload))
+    
+    # Ground Controller
     safeGrounds = makeSafeGround(safeGrounds, HOLE_WIDTH, GROUND_HEIGHT, screenwidth)
+    
+    holeControl = -1 * ((holeControl * -1) % ((20-level)*(len(safeGrounds) + 1)))
+    holes[holes.index(False) if False in holes else 0] = True
+    holes[int(holeControl/(20-level))] =  False
+    
+    for i in range(len(holes)):
+        if holes[i] == False:
+            safeGrounds[i].visible = False
+        else:
+            safeGrounds[i].visible = True
+    
+    holeControl -= 1
+    # End of Ground Controller
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
