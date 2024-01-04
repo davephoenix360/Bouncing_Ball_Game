@@ -39,9 +39,15 @@ class Ball(object):
         else:
             self.rollCount = 0
     
-        
         self.rollCount %= len(self.picload)
         win.blit(self.picload[self.rollCount], (self.x, self.y))
+        #pygame.draw.rect(win, (0, 0, 0), self.hitbox)
+        
+    
+    def fell(self, win):
+        font2 = pygame.font.SysFont('comicsans', 20, True)
+        text2 = font2.render('You fell in a hole', 1, (255, 0, 0))
+        win.blit(text2, (screenwidth/2 - (text2.get_width()/2), screenheight/2 - (text2.get_height()/2)))
         
 class safeGround(object):
     def __init__(self, x, y, width, height, color):
@@ -90,13 +96,15 @@ def makeSafeGround(safeGrounds, HOLE_WIDTH, GROUND_HEIGHT, screenwidth):
     
     return safeGrounds
 
+font = pygame.font.SysFont('comicsans', 20, True)
 HOLE_WIDTH = 80
 GROUND_HEIGHT = 10
 ball = Ball(100, 360, 65)
 safeGrounds = []
-holes = [True]*int(screenwidth/HOLE_WIDTH)
-holeControl = -1
-level = 0
+holesCheck = [True]*int(screenwidth/HOLE_WIDTH)
+level = 0 # This controls the speed of the holes on floor
+holeControl = -1 * (20-level)
+
 
 run = True
 while run:
@@ -105,19 +113,31 @@ while run:
     
     # Ground Controller
     safeGrounds = makeSafeGround(safeGrounds, HOLE_WIDTH, GROUND_HEIGHT, screenwidth)
+    holesCheck = [True]*int(screenwidth/HOLE_WIDTH)
     
-    holeControl = -1 * ((holeControl * -1) % ((20-level)*(len(safeGrounds) + 1)))
-    holes[holes.index(False) if False in holes else 0] = True
-    holes[int(holeControl/(20-level))] =  False
+    if holeControl <= ((len(holesCheck) * -1) + 1) * (20-level):
+        holeControl = ((holeControl * -1)/(20-level)) % (len(holesCheck))
+        holeControl = -1 * holeControl
     
-    for i in range(len(holes)):
-        if holes[i] == False:
-            safeGrounds[i].visible = False
+    holesCheck[int(holeControl/(20-level))] = False
+    holeControl -= 1
+    
+    for i in range(len(holesCheck)):
+        if holesCheck[i] == False:
+            safeGrounds[i].visible = False 
         else:
             safeGrounds[i].visible = True
     
-    holeControl -= 1
     # End of Ground Controller
+    
+    actualHole = safeGrounds[holesCheck.index(False)]
+    if (ball.y + ball.diameter + 2) > actualHole.y and (ball.x + ball.diameter > actualHole.x + actualHole.width/2) and (ball.x < actualHole.x + actualHole.width/2):
+        print('fell', actualHole.x, actualHole.y)
+        print('ball', ball.x, ball.y)
+        #ball.fell(win)
+        pass
+        
+    
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
